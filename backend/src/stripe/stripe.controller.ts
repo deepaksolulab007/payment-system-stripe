@@ -5,30 +5,6 @@ import { StripeService } from './stripe.service';
 export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
-  // =====================
-  // 1️⃣  Create PaymentIntent
-  // =====================
-  // @Post('create-intent')
-  // async createPaymentIntent(@Body() body: { amount: number; currency?: string }) {
-  //   const { amount, currency } = body;
-
-  //   // Stripe expects amount in the smallest currency unit (paise)
-  //   const finalAmount = amount;
-
-  //   const paymentIntent = await this.stripeService.createPaymentIntent(
-  //     finalAmount,
-  //     currency || 'inr',
-  //   );
-
-  //   return {
-  //     message: 'PaymentIntent created successfully',
-  //     clientSecret: paymentIntent.client_secret,
-  //     paymentIntentId: paymentIntent.id,
-  //   };
-  // }
-
-
-
   @Post('create-intent')
 async createPaymentIntent(
   @Body() body: { amount: number; currency?: string }

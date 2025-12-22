@@ -7,6 +7,7 @@ import { AdminService } from './admin.service';
 import { PaymentSchema } from '../payment/payment.schema';
 import { RefundSchema } from '../refund/schemas/refund.schema';
 import { PayoutSchema } from '../payout/schemas/payout.schema';
+import { SubscriptionSchema } from '../subscription/schemas/subscription.schema';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { PayoutSchema } from '../payout/schemas/payout.schema';
       { name: 'Payment', schema: PaymentSchema },
       { name: 'Refund', schema: RefundSchema },
       { name: 'Payout', schema: PayoutSchema },
+      { name: 'Subscription', schema: SubscriptionSchema },
     ]),
   ],
   controllers: [AdminController],

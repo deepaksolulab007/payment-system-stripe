@@ -12,6 +12,7 @@ import { PaymentModule } from './payment/payment.module';
 import { PayoutModule } from './payout/payout.module';
 import { AdminModule } from './admin/admin.module';
 import { RefundModule } from './refund/refund.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RefundModule } from './refund/refund.module';
     PayoutModule,
     AdminModule,
     RefundModule,
+    SubscriptionModule,
   ],
 
   controllers: [AppController],

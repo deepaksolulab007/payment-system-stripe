@@ -5,6 +5,7 @@ import Stripe from 'stripe';
 import { PaymentService } from '../payment/payment.service';
 import { PayoutService } from '../payout/payout.service';
 import { RefundService } from '../refund/refund.service';
+import { SubscriptionService } from '../subscription/subscription.service';
 
 @Controller('webhook')
 export class WebhookController {
@@ -15,6 +16,7 @@ export class WebhookController {
     private readonly paymentService: PaymentService,
     private readonly payoutService: PayoutService,
     private readonly refundService: RefundService,
+    private readonly subscriptionService: SubscriptionService,
   ) {
     this.stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY')!,
@@ -121,6 +123,136 @@ export class WebhookController {
         console.log(`🟢 Payouts Enabled → ${account.id}`);
       } else {
         console.log(`⚠️ Payouts Not Enabled → ${account.id}`);
+      }
+    }
+
+    // ************************************************************
+    // 🔴 5. SUBSCRIPTION EVENTS
+    // ************************************************************
+
+    // Subscription created (new subscription)
+    if (event.type === 'customer.subscription.created') {
+      const subscription = event.data.object as Stripe.Subscription;
+      await this.subscriptionService.syncSubscription(subscription);
+      console.log(`🆕 Subscription Created → ${subscription.id}`);
+    }
+
+    // Subscription updated (plan change, status change, etc.)
+    if (event.type === 'customer.subscription.updated') {
+      const subscription = event.data.object as Stripe.Subscription;
+      await this.subscriptionService.syncSubscription(subscription);
+      
+      // Check for specific status changes
+      if (subscription.cancel_at_period_end) {
+        console.log(`⚠️ Subscription set to cancel at period end → ${subscription.id}`);
+      } else {
+        console.log(`🔄 Subscription Updated → ${subscription.id} (Status: ${subscription.status})`);
+      }
+    }
+
+    // Subscription deleted/canceled
+    if (event.type === 'customer.subscription.deleted') {
+      const subscription = event.data.object as Stripe.Subscription;
+      await this.subscriptionService.syncSubscription(subscription);
+      console.log(`❌ Subscription Canceled/Deleted → ${subscription.id}`);
+    }
+
+    // Subscription trial will end (3 days before trial ends)
+    if (event.type === 'customer.subscription.trial_will_end') {
+      const subscription = event.data.object as Stripe.Subscription;
+      console.log(`⏰ Trial ending soon → ${subscription.id}`);
+      // You can send email notifications here
+    }
+
+    // Subscription paused
+    if (event.type === 'customer.subscription.paused') {
+      const subscription = event.data.object as Stripe.Subscription;
+      await this.subscriptionService.syncSubscription(subscription);
+      console.log(`⏸️ Subscription Paused → ${subscription.id}`);
+    }
+
+    // Subscription resumed
+    if (event.type === 'customer.subscription.resumed') {
+      const subscription = event.data.object as Stripe.Subscription;
+      await this.subscriptionService.syncSubscription(subscription);
+      console.log(`▶️ Subscription Resumed → ${subscription.id}`);
+    }
+
+    // ************************************************************
+    // 💳 6. INVOICE EVENTS (for subscription renewals)
+    // ************************************************************
+
+    // Invoice paid (successful renewal)
+    if (event.type === 'invoice.paid') {
+      const invoice = event.data.object as Stripe.Invoice;
+      const invoiceData = invoice as any; // Type assertion for subscription property
+      
+      if (invoiceData.subscription) {
+        console.log(`✅ Invoice Paid (Renewal Success) → Invoice: ${invoice.id}, Subscription: ${invoiceData.subscription}`);
+        
+        // Fetch and sync the subscription
+        const subscription = await this.stripe.subscriptions.retrieve(invoiceData.subscription as string);
+        await this.subscriptionService.syncSubscription(subscription);
+      }
+    }
+
+    // Invoice payment failed (renewal failed)
+    if (event.type === 'invoice.payment_failed') {
+      const invoice = event.data.object as Stripe.Invoice;
+      const invoiceData = invoice as any; // Type assertion for subscription property
+      
+      if (invoiceData.subscription) {
+        console.log(`❌ Invoice Payment Failed → Invoice: ${invoice.id}, Subscription: ${invoiceData.subscription}`);
+        
+        // Fetch and sync the subscription (status might change to past_due)
+        const subscription = await this.stripe.subscriptions.retrieve(invoiceData.subscription as string);
+        await this.subscriptionService.syncSubscription(subscription);
+      }
+    }
+
+    // Invoice upcoming (sent ~3 days before next payment)
+    if (event.type === 'invoice.upcoming') {
+      const invoice = event.data.object as Stripe.Invoice;
+      const invoiceData = invoice as any;
+      console.log(`📅 Upcoming Invoice → Customer: ${invoice.customer}, Amount: ${invoiceData.amount_due}`);
+      // You can send reminder emails here
+    }
+
+    // Invoice finalized
+    if (event.type === 'invoice.finalized') {
+      const invoice = event.data.object as Stripe.Invoice;
+      console.log(`📄 Invoice Finalized → ${invoice.id}`);
+    }
+
+    // ************************************************************
+    // 🛒 7. CHECKOUT SESSION EVENTS
+    // ************************************************************
+
+    // Checkout session completed (subscription created via checkout)
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      
+      if (session.mode === 'subscription' && session.subscription) {
+        console.log(`🛒 Checkout Completed → Session: ${session.id}, Subscription: ${session.subscription}`);
+        
+        // Fetch the subscription
+        const subscription = await this.stripe.subscriptions.retrieve(session.subscription as string);
+        
+        // Check if this is a one-time subscription (from metadata)
+        const oneTime = session.metadata?.oneTime === 'true';
+        if (oneTime) {
+          // Update subscription to cancel at period end
+          await this.stripe.subscriptions.update(subscription.id, {
+            cancel_at_period_end: true,
+          });
+          console.log(`🔄 One-time subscription set to cancel at period end → ${subscription.id}`);
+          
+          // Fetch updated subscription
+          const updatedSubscription = await this.stripe.subscriptions.retrieve(subscription.id);
+          await this.subscriptionService.syncSubscription(updatedSubscription);
+        } else {
+          await this.subscriptionService.syncSubscription(subscription);
+        }
       }
     }
 

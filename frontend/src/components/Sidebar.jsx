@@ -8,6 +8,7 @@ export default function Sidebar() {
 
       <ul className="sidebar-menu">
         <li><Link to="/admin/dashboard">Dashboard</Link></li>
+        <li><Link to="/admin/subscriptions">Subscriptions</Link></li>
         <li><Link to="/admin/payouts">Payouts</Link></li>
         <li><Link to="/admin/refunds">Refunds</Link></li>
       </ul>

@@ -143,13 +143,24 @@ export default function AdminDashboard() {
 
       {/* ---------------- STATS CARDS ---------------- */}
       {stats && (
-        <div className="stats-container">
-          <div className="stat-card green">Total Payments: {stats.totalPayments}</div>
-          <div className="stat-card red">Failed Payments: {stats.failedPayments}</div>
-          <div className="stat-card blue">Total Refunds: {stats.totalRefunds}</div>
-          <div className="stat-card yellow">Total Payouts: {stats.totalPayouts}</div>
-          <div className="stat-card red">Failed Payouts: {stats.failedPayouts}</div>
-        </div>
+        <>
+          <div className="stats-container">
+            <div className="stat-card green">Total Payments: {stats.totalPayments}</div>
+            <div className="stat-card red">Failed Payments: {stats.failedPayments}</div>
+            <div className="stat-card blue">Total Refunds: {stats.totalRefunds}</div>
+            <div className="stat-card yellow">Total Payouts: {stats.totalPayouts}</div>
+            <div className="stat-card red">Failed Payouts: {stats.failedPayouts}</div>
+          </div>
+          
+          {/* Subscription Stats */}
+          <h2 style={{ marginTop: "30px" }}>Subscription Stats</h2>
+          <div className="stats-container">
+            <div className="stat-card blue">Total Subscriptions: {stats.totalSubscriptions}</div>
+            <div className="stat-card green">Active: {stats.activeSubscriptions}</div>
+            <div className="stat-card yellow">Trialing: {stats.trialingSubscriptions}</div>
+            <div className="stat-card red">Canceled: {stats.canceledSubscriptions}</div>
+          </div>
+        </>
       )}
 
       {/* ---------------- PLATFORM BALANCE ---------------- */}

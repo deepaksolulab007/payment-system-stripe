@@ -8,10 +8,10 @@ export class AdminService {
     @InjectModel('Payment') private paymentModel: Model<any>,
     @InjectModel('Refund') private refundModel: Model<any>,
     @InjectModel('Payout') private payoutModel: Model<any>,
+    @InjectModel('Subscription') private subscriptionModel: Model<any>,
   ) {}
 
   async getDashboardStats() {
-
     const totalPayments = await this.paymentModel.countDocuments();
     const failedPayments = await this.paymentModel.countDocuments({
       status: 'failed',
@@ -24,12 +24,28 @@ export class AdminService {
       status: 'failed',
     });
 
+    // Subscription stats
+    const totalSubscriptions = await this.subscriptionModel.countDocuments();
+    const activeSubscriptions = await this.subscriptionModel.countDocuments({
+      status: 'active',
+    });
+    const canceledSubscriptions = await this.subscriptionModel.countDocuments({
+      status: 'canceled',
+    });
+    const trialingSubscriptions = await this.subscriptionModel.countDocuments({
+      status: 'trialing',
+    });
+
     return {
       totalPayments,
       failedPayments,
       totalRefunds,
       totalPayouts,
-      failedPayouts
+      failedPayouts,
+      totalSubscriptions,
+      activeSubscriptions,
+      canceledSubscriptions,
+      trialingSubscriptions,
     };
   }
 }

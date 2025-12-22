@@ -66,26 +66,44 @@ function Home() {
   };
 
   return (
-    <div style={{ padding: "30px", maxWidth: "450px", margin: "auto", position: "relative" }}>
+    <div style={{ 
+      minHeight: "100vh",
+      padding: "40px 20px",
+      background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+    }}>
+      <div style={{ padding: "30px", maxWidth: "450px", margin: "auto", position: "relative" }}>
       
-      {/* 🔐 Admin login button */}
-      <button
-        onClick={() => window.location.href = "/admin"}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          background: "#333",
-          color: "white",
-          padding: "6px 12px",
-          borderRadius: "5px",
-          cursor: "pointer",
-          border: "none",
-          fontSize: "14px"
-        }}
-      >
-        Admin Login
-      </button>
+      {/* Navigation buttons */}
+      <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "10px" }}>
+        <button
+          onClick={() => window.location.href = "/subscription"}
+          style={{
+            background: "#6366f1",
+            color: "white",
+            padding: "6px 12px",
+            borderRadius: "5px",
+            cursor: "pointer",
+            border: "none",
+            fontSize: "14px"
+          }}
+        >
+          Subscriptions
+        </button>
+        <button
+          onClick={() => window.location.href = "/admin"}
+          style={{
+            background: "#333",
+            color: "white",
+            padding: "6px 12px",
+            borderRadius: "5px",
+            cursor: "pointer",
+            border: "none",
+            fontSize: "14px"
+          }}
+        >
+          Admin Login
+        </button>
+      </div>
 
       <h1 style={{ textAlign: "center" }}>Make a Payment</h1>
 
@@ -164,6 +182,7 @@ function Home() {
       >
         Cancel
       </button>
+      </div>
     </div>
   );
 }
